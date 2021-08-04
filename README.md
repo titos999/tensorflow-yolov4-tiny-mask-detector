@@ -2,8 +2,8 @@
 Custom Mask Detector trained using YOLOv4-tiny, implemented in Tensorflow 2.0 and deployed on Android Studio.  
 
 # Training 
-Yolov4-Tiny was used for training the mask detector
+Darknet and yolov4-tiny was used for training the mask detector. Guidelines from the following repo was used: https://github.com/AlexeyAB/darknet.
 
-# Convertion from Yolov4-tiny weights to Tensorflow Lite
-For converting the yolov4-tiny custom weights to tensorflow lite the following repo was used : https://github.com/hunglc007/tensorflow-yolov4-tflite
+# Converting Yolov4-tiny weights to Tensorflow Lite
+For converting my yolov4-tiny custom weights to tensorflow lite the following repo was used : https://github.com/hunglc007/tensorflow-yolov4-tflite
 
