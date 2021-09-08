@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Vector;
 import org.tensorflow.lite.Interpreter;
-import org.tensorflow.lite.examples.detection.MainActivity;
+import org.tensorflow.lite.examples.detection.activities.MainActivity;
 import org.tensorflow.lite.examples.detection.env.Logger;
 import org.tensorflow.lite.examples.detection.env.Utils;
 import org.tensorflow.lite.gpu.GpuDelegate;

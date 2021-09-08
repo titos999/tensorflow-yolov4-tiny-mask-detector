@@ -1,0 +1,188 @@
+package org.tensorflow.lite.examples.detection.activities;
+
+import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
+import android.os.Bundle;
+import android.os.Handler;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
+import org.tensorflow.lite.examples.detection.R;
+import org.tensorflow.lite.examples.detection.activities.backcamera.BackDetectorActivity;
+import org.tensorflow.lite.examples.detection.activities.frontcamera.FrontDetectorActivity;
+import org.tensorflow.lite.examples.detection.customview.OverlayView;
+import org.tensorflow.lite.examples.detection.env.ImageUtils;
+import org.tensorflow.lite.examples.detection.env.Logger;
+import org.tensorflow.lite.examples.detection.env.Utils;
+import org.tensorflow.lite.examples.detection.tflite.Classifier;
+import org.tensorflow.lite.examples.detection.tflite.YoloV4Classifier;
+import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
+
+public class MainActivity extends AppCompatActivity {
+
+    public static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.5f;
+
+    // Change these two to our custom .tflite model and mask-coco.txt
+    private static final String TF_OD_API_MODEL_FILE = "custom_data/yolov4-tiny-416.tflite";
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/custom_data/mask-coco.txt";
+    private static final String IMAGE_FILE_NAME = "custom_data/example3.jpg";
+    private int imageCounter = 2;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        backCameraButton = findViewById(R.id.backCameraButton);
+        frontCameraButton = findViewById(R.id.frontCameraButton);
+        detectButton = findViewById(R.id.detectButton);
+        imageView = findViewById(R.id.imageView);
+        changeImageButton = findViewById(R.id.changeImageButton);
+
+        backCameraButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, BackDetectorActivity.class)));
+
+        frontCameraButton.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, FrontDetectorActivity.class)));
+
+        detectButton.setOnClickListener(v -> {
+            Handler handler = new Handler();
+
+            new Thread(() -> {
+                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
+                handler.post(() -> handleResult(cropBitmap, results));
+            }).start();
+
+        });
+
+        changeImageButton.setOnClickListener(view -> {
+            imageCounter++;
+            if(imageCounter > 3)
+                imageCounter = 2;
+
+            this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/example" + imageCounter + ".jpg");
+            this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
+            this.imageView.setImageBitmap(cropBitmap);
+        });
+
+        this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/example" + imageCounter + ".jpg");
+        this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
+        this.imageView.setImageBitmap(cropBitmap);
+
+
+
+        initBox();
+    }
+
+    private static final Logger LOGGER = new Logger();
+
+    public static final int TF_OD_API_INPUT_SIZE = 416;
+
+    private static final boolean TF_OD_API_IS_QUANTIZED = false;
+
+    // Minimum detection confidence to track a detection.
+    private static final boolean MAINTAIN_ASPECT = false;
+    private Integer sensorOrientation = 90;
+
+    private Classifier detector;
+
+    private Matrix frameToCropTransform;
+    private Matrix cropToFrameTransform;
+    private MultiBoxTracker tracker;
+    private OverlayView trackingOverlay;
+
+    protected int previewWidth = 0;
+    protected int previewHeight = 0;
+
+    private Bitmap sourceBitmap;
+    private Bitmap cropBitmap;
+
+    private Button backCameraButton, frontCameraButton, detectButton, changeImageButton;
+    private ImageView imageView;
+
+    private void initBox() {
+        previewHeight = TF_OD_API_INPUT_SIZE;
+        previewWidth = TF_OD_API_INPUT_SIZE;
+        frameToCropTransform =
+                ImageUtils.getTransformationMatrix(
+                        previewWidth, previewHeight,
+                        TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE,
+                        sensorOrientation, MAINTAIN_ASPECT, false);
+
+        cropToFrameTransform = new Matrix();
+        frameToCropTransform.invert(cropToFrameTransform);
+
+        tracker = new MultiBoxTracker(this);
+        trackingOverlay = findViewById(R.id.tracking_overlay);
+        trackingOverlay.addCallback(
+                canvas -> tracker.draw(canvas, false));
+
+        tracker.setFrameConfiguration(TF_OD_API_INPUT_SIZE, TF_OD_API_INPUT_SIZE, sensorOrientation);
+
+        try {
+            detector =
+                    YoloV4Classifier.create(
+                            getAssets(),
+                            TF_OD_API_MODEL_FILE,
+                            TF_OD_API_LABELS_FILE,
+                            TF_OD_API_IS_QUANTIZED);
+        } catch (final IOException e) {
+            e.printStackTrace();
+            LOGGER.e(e, "Exception initializing classifier!");
+            Toast toast =
+                    Toast.makeText(
+                            getApplicationContext(), "Classifier could not be initialized", Toast.LENGTH_SHORT);
+            toast.show();
+            finish();
+        }
+    }
+
+    private void handleResult(Bitmap bitmap, List<Classifier.Recognition> results) {
+        final Canvas canvas = new Canvas(bitmap);
+
+        // Mask paint red
+        final Paint maskPaint = new Paint();
+        maskPaint.setColor(Color.RED);
+        maskPaint.setStyle(Paint.Style.STROKE);
+        maskPaint.setStrokeWidth(2.0f);
+
+        // No mask paint blue
+        final Paint noMaskPaint = new Paint();
+        noMaskPaint.setColor(Color.BLUE);
+        noMaskPaint.setStyle(Paint.Style.STROKE);
+        noMaskPaint.setStrokeWidth(2.0f);
+
+        final List<Classifier.Recognition> mappedRecognitions = new LinkedList<Classifier.Recognition>();
+
+        for (final Classifier.Recognition result : results) {
+            final RectF location = result.getLocation();
+            if (location != null && result.getConfidence() >= MINIMUM_CONFIDENCE_TF_OD_API) {
+
+                // If mask red color
+                if(result.getDetectedClass() == 0) {
+                    canvas.drawRect(location, maskPaint);
+                }
+                // If no mask blue color
+                else {
+                    canvas.drawRect(location, noMaskPaint);
+                }
+
+//                cropToFrameTransform.mapRect(location);
+//
+//                result.setLocation(location);
+//                mappedRecognitions.add(result);
+            }
+
+        }
+//        tracker.trackResults(mappedRecognitions, new Random().nextInt());
+//        trackingOverlay.postInvalidate();
+        imageView.setImageBitmap(bitmap);
+    }
+}

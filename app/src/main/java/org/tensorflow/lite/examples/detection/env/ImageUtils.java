@@ -171,7 +171,8 @@ public class ImageUtils {
       final int dstWidth,
       final int dstHeight,
       final int applyRotation,
-      final boolean maintainAspectRatio) {
+      final boolean maintainAspectRatio,
+      final boolean isFrontFaced) {
     final Matrix matrix = new Matrix();
 
     if (applyRotation != 0) {
@@ -202,10 +203,20 @@ public class ImageUtils {
         // Scale by minimum factor so that dst is filled completely while
         // maintaining the aspect ratio. Some image may fall off the edge.
         final float scaleFactor = Math.max(scaleFactorX, scaleFactorY);
-        matrix.postScale(scaleFactor, scaleFactor);
+        if(!isFrontFaced) {
+          matrix.postScale(scaleFactor, scaleFactor);
+        }
+        else {
+          matrix.postScale(-scaleFactor, scaleFactor);
+        }
       } else {
         // Scale exactly to fill dst from src.
-        matrix.postScale(scaleFactorX, scaleFactorY);
+        if(!isFrontFaced) {
+          matrix.postScale(scaleFactorX, scaleFactorY);
+        }
+        else {
+          matrix.postScale(-scaleFactorX, scaleFactorY);
+        }
       }
     }
 
