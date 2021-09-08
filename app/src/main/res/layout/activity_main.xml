@@ -5,63 +5,152 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/tfe_semi_transparent"
     tools:context=".activities.MainActivity">
 
     <Button
         android:id="@+id/detectButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="120dp"
         android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
         android:layout_marginEnd="16dp"
         android:text="@string/detect"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:textColor="@color/tfe_color_accent"
+        android:background="@color/tfe_color_primary_dark"
+        app:layout_constraintBottom_toTopOf="@id/changeImageButton"
         app:layout_constraintEnd_toStartOf="@+id/guideline"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView" />
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <Button
-        android:id="@+id/changeImageButton"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayoutBlue"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/tfe_color_white"
+        app:layout_constraintBottom_toTopOf="@+id/detectButton"
+        app:layout_constraintStart_toStartOf="@+id/guideline">
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@color/tfe_color_blue"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/change_image"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        android:layout_marginStart="4dp"
+        android:text="@string/no_mask"
+        android:textColor="@color/tfe_color_accent"
+        app:layout_constraintBottom_toBottomOf="@+id/constraintLayoutBlue"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/constraintLayoutBlue"
+        app:layout_constraintTop_toTopOf="@+id/constraintLayoutBlue" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintRed"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:background="@color/tfe_color_white"
+        app:layout_constraintBottom_toTopOf="@+id/detectButton"
+        app:layout_constraintEnd_toStartOf="@+id/guideline">
+
+        <View
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@color/tfe_color_red"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/mask"
+        android:textColor="@color/tfe_color_accent"
+        android:layout_marginEnd="4dp"
+        android:gravity="right"
+        app:layout_constraintBottom_toBottomOf="@+id/constraintRed"
+        app:layout_constraintEnd_toStartOf="@+id/constraintRed"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/detectButton" />
+        app:layout_constraintTop_toTopOf="@+id/constraintRed" />
 
     <Button
         android:id="@+id/backCameraButton"
         android:layout_width="0dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:layout_height="wrap_content"
         android:text="@string/back_camera"
-        app:layout_constraintBottom_toBottomOf="@+id/detectButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/guideline"
-        app:layout_constraintTop_toTopOf="@+id/detectButton" />
+        android:textColor="@color/tfe_color_accent"
+        android:background="@color/tfe_color_primary_dark"
+        app:layout_constraintBottom_toTopOf="@id/frontCameraButton"
+        app:layout_constraintStart_toEndOf="@+id/guideline"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/changeImageButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/tfe_color_primary_dark"
+        android:text="@string/change_image"
+        android:textColor="@color/tfe_color_accent"
+        app:layout_constraintBottom_toTopOf="@+id/chooseImageButton"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
 
     <Button
         android:id="@+id/frontCameraButton"
         android:layout_width="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/tfe_color_primary_dark"
         android:text="@string/front_camera"
-        app:layout_constraintTop_toBottomOf="@id/backCameraButton"
+        android:textColor="@color/tfe_color_accent"
+        app:layout_constraintBottom_toTopOf="@+id/chooseImageButton"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/guideline" />
+
+    <Button
+        android:id="@+id/chooseImageButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="@color/tfe_color_primary_dark"
+        android:text="@string/choose_image_from_gallery"
+        android:textColor="@color/tfe_color_accent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="416dp"
         android:layout_height="416dp"
         android:scaleType="fitStart"
-        app:layout_constraintBottom_toTopOf="@+id/detectButton"
+        app:layout_constraintBottom_toTopOf="@+id/constraintRed"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -82,5 +171,19 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.5" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_left"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.25" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_right"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.75" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

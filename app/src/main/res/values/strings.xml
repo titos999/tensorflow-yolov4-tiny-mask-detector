@@ -5,4 +5,7 @@
     <string name="change_image">Change Image</string>
     <string name="back_camera">Back Camera</string>
     <string name="front_camera">Front Camera</string>
+    <string name="choose_image_from_gallery">Choose image from gallery</string>
+    <string name="no_mask">No Mask</string>
+    <string name="mask">Mask</string>
 </resources>

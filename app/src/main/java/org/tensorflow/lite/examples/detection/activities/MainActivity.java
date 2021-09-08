@@ -8,8 +8,10 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -23,6 +25,8 @@ import org.tensorflow.lite.examples.detection.env.Utils;
 import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.YoloV4Classifier;
 import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
+import org.tensorflow.lite.examples.detection.utils.Utilities;
+
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -35,7 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String TF_OD_API_MODEL_FILE = "custom_data/yolov4-tiny-416.tflite";
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/custom_data/mask-coco.txt";
     private static final String IMAGE_FILE_NAME = "custom_data/example3.jpg";
+    private static final int SELECT_PHOTO = 1;
     private int imageCounter = 2;
+    private boolean canDetectImage = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,18 +53,33 @@ public class MainActivity extends AppCompatActivity {
         detectButton = findViewById(R.id.detectButton);
         imageView = findViewById(R.id.imageView);
         changeImageButton = findViewById(R.id.changeImageButton);
+        chooseImageButton = findViewById(R.id.chooseImageButton);
 
         backCameraButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, BackDetectorActivity.class)));
 
         frontCameraButton.setOnClickListener(view -> startActivity(new Intent(MainActivity.this, FrontDetectorActivity.class)));
 
-        detectButton.setOnClickListener(v -> {
-            Handler handler = new Handler();
+        chooseImageButton.setOnClickListener(view -> openGallery());
 
-            new Thread(() -> {
-                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
-                handler.post(() -> handleResult(cropBitmap, results));
-            }).start();
+        detectButton.setOnClickListener(v -> {
+
+            // detectButton.setEnabled(false);
+            // detectButton.setBackgroundColor(getApplicationContext().getResources().getColor(R.color.tfe_button_disabled));
+
+
+            if(canDetectImage) {
+                Handler handler = new Handler();
+
+                Utilities.toggleProgressDialogue(true, MainActivity.this);
+
+                new Thread(() -> {
+                    final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
+                    handler.post(() -> handleResult(cropBitmap, results));
+                }).start();
+            }
+            else {
+                Utilities.showToast(MainActivity.this, "You have already detected the bounding boxes in this image");
+            }
 
         });
 
@@ -67,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
             if(imageCounter > 3)
                 imageCounter = 2;
 
+            canDetectImage = true;
             this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/example" + imageCounter + ".jpg");
             this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
             this.imageView.setImageBitmap(cropBitmap);
@@ -79,6 +101,43 @@ public class MainActivity extends AppCompatActivity {
 
 
         initBox();
+    }
+
+    private void openGallery() {
+        Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+        photoPickerIntent.setType("image/*");
+        startActivityForResult(photoPickerIntent, SELECT_PHOTO);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        if (requestCode == SELECT_PHOTO) {
+            if (resultCode == RESULT_OK) {
+                if (intent != null) {
+                    // Get the URI of the selected file
+                    final Uri uri = intent.getData();
+                    useImage(uri);
+                }
+            }
+            super.onActivityResult(requestCode, resultCode, intent);
+
+        }
+    }
+
+    void useImage(Uri uri) {
+        Bitmap bitmap = null;
+        try {
+            bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), uri);
+            // imageView.setImageBitmap(bitmap);
+            // detectButton.setEnabled(true);
+            // detectButton.setBackgroundColor(getApplicationContext().getResources().getColor(R.color.tfe_color_primary_dark));
+            canDetectImage = true;
+            this.sourceBitmap = bitmap;
+            this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
+            this.imageView.setImageBitmap(cropBitmap);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private static final Logger LOGGER = new Logger();
@@ -104,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
     private Bitmap sourceBitmap;
     private Bitmap cropBitmap;
 
-    private Button backCameraButton, frontCameraButton, detectButton, changeImageButton;
+    private Button backCameraButton, frontCameraButton, chooseImageButton, detectButton, changeImageButton;
     private ImageView imageView;
 
     private void initBox() {
@@ -183,6 +242,8 @@ public class MainActivity extends AppCompatActivity {
         }
 //        tracker.trackResults(mappedRecognitions, new Random().nextInt());
 //        trackingOverlay.postInvalidate();
+        Utilities.toggleProgressDialogue(false, MainActivity.this);
+        canDetectImage = false;
         imageView.setImageBitmap(bitmap);
     }
 }
