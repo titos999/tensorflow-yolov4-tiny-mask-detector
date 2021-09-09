@@ -26,7 +26,6 @@ import org.tensorflow.lite.examples.detection.tflite.Classifier;
 import org.tensorflow.lite.examples.detection.tflite.YoloV4Classifier;
 import org.tensorflow.lite.examples.detection.tracking.MultiBoxTracker;
 import org.tensorflow.lite.examples.detection.utils.Utilities;
-
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,9 +37,8 @@ public class MainActivity extends AppCompatActivity {
     // Change these two to our custom .tflite model and mask-coco.txt
     private static final String TF_OD_API_MODEL_FILE = "custom_data/yolov4-tiny-416.tflite";
     private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/custom_data/mask-coco.txt";
-    private static final String IMAGE_FILE_NAME = "custom_data/example3.jpg";
     private static final int SELECT_PHOTO = 1;
-    private int imageCounter = 2;
+    private int imageCounter = 1;
     private boolean canDetectImage = true;
 
     @Override
@@ -85,16 +83,16 @@ public class MainActivity extends AppCompatActivity {
 
         changeImageButton.setOnClickListener(view -> {
             imageCounter++;
-            if(imageCounter > 3)
-                imageCounter = 2;
+            if(imageCounter > 10)
+                imageCounter = 1;
 
             canDetectImage = true;
-            this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/example" + imageCounter + ".jpg");
+            this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/testimages/example" + imageCounter + ".png");
             this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
             this.imageView.setImageBitmap(cropBitmap);
         });
 
-        this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/example" + imageCounter + ".jpg");
+        this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "custom_data/testimages/example" + imageCounter + ".png");
         this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
         this.imageView.setImageBitmap(cropBitmap);
 
